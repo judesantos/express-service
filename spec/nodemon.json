@@ -1,0 +1,6 @@
+{
+  "watch": ["./src/spec"],
+  "ext": "spec.ts",
+  "ignore": ["spec/support"],
+  "exec": "ts-node -r tsconfig-paths/register ./src/spec"
+}
