@@ -6,7 +6,7 @@ displayUsers();
 
 
 function displayUsers() {
-    Http.Get('/api/users/all')
+    Http.Get('/api/v1/users/all')
         .then(response => response.json())
         .then((response) => {
             var allUsers = response.users;
@@ -34,7 +34,7 @@ function getUserDisplayEle(user) {
                 Delete
             </button>
         </div>
-        
+
         <div class="edit-view">
             <div>
                 Name: <input class="name-edit-input" value="${user.name}">
@@ -85,7 +85,7 @@ function addUser() {
             email: emailInput.value
         },
     };
-    Http.Post('/api/users/add', data)
+    Http.Post('/api/v1/users/add', data)
         .then(() => {
             displayUsers();
         })
@@ -120,7 +120,7 @@ function submitEdit(ele) {
             id: id
         }
     };
-	Http.Put('/api/users/update', data)
+    Http.Put('/api/v1/users/update', data)
         .then(() => {
             displayUsers();
         })
@@ -129,7 +129,7 @@ function submitEdit(ele) {
 
 function deleteUser(ele) {
     var id = ele.getAttribute('data-user-id');
-	Http.Delete('/api/users/delete/' + id)
+    Http.Delete('/api/v1/users/delete/' + id)
         .then(() => {
             displayUsers();
         })
@@ -140,7 +140,7 @@ function deleteUser(ele) {
  ******************************************************************************/
 
 function logoutUser() {
-    Http.Get('/api/auth/logout')
+    Http.Get('/api/v1/auth/logout')
         .then(() => {
             window.location.href = '/';
         })

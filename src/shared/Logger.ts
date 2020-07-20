@@ -5,6 +5,7 @@
  */
 
 import { createLogger, format, transports } from "winston";
+const moment = require("moment");
 
 // Import Functions
 const { File, Console } = transports;
@@ -21,11 +22,12 @@ const levels = {
 
 // Init Logger
 const logger = createLogger({
-  level: "info",
+  level: "silly",
 });
 
+const _tsFormat = () => moment().format("YYYY-MM-DD hh:mm:ss").trim();
 const _format = format.printf(({ level, message, timestamp, ms }) => {
-  return `${timestamp} ${level}: ${message} - ${ms}`;
+  return `${timestamp} ${ms} ${level}: ${message}`;
 });
 
 /**
@@ -35,7 +37,9 @@ const _format = format.printf(({ level, message, timestamp, ms }) => {
  */
 if (process.env.NODE_ENV === "production") {
   const fileFormat = format.combine(
-    format.timestamp(),
+    format.timestamp({
+      format: "YYYY-MM-DD HH:mm:ss",
+    }),
     format.json(),
     format.ms()
   );
@@ -60,7 +64,13 @@ if (process.env.NODE_ENV === "production") {
     return info;
   });
   const consoleTransport = new Console({
-    format: format.combine(format.timestamp(), format.ms(), _format),
+    format: format.combine(
+      format.timestamp({
+        format: "YYYY-MM-DD HH:mm:ss",
+      }),
+      format.ms(),
+      _format
+    ),
   });
   logger.add(consoleTransport);
 }

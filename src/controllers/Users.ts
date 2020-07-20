@@ -23,7 +23,7 @@ export const create = async (req: Request, res: Response) => {
     });
   }
   // Add new user
-  user.role = UserRoles.User;
+  //user.role = UserRoles[];
   await user.create(user);
   return res.status(CREATED).end();
 };

@@ -1,45 +1,30 @@
 import { Request, Response, NextFunction } from "express";
 import { UNAUTHORIZED, FORBIDDEN } from "http-status-codes";
 
-import JwtService from "@shared/JwtService";
-const jwtService = new JwtService();
+import { UserRoles } from "@models/User";
+import logger from "@shared/Logger";
 
-export const isAuthenticated = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { authorization } = req.headers;
+export const isAuthenticated = (opts: {
+  hasRole: number;
+  allowSameUser?: boolean;
+}) => {
+  logger.debug("Entering middleware::isAuthenticated()");
+  return (req: Request, res: Response, next: NextFunction) => {
+    const { role, uid } = res.locals;
+    const { id } = req.params;
 
-  if (!authorization) {
-    return res
-      .status(FORBIDDEN)
-      .send("Authentication failed: missing authorization in request");
-  }
+    if (opts.allowSameUser && id && uid === id) {
+      return next();
+    }
 
-  if (!authorization.startsWith("Bearer")) {
-    return res
-      .status(FORBIDDEN)
-      .send("Authentication failed: invalid authorization");
-  }
+    if (!role) {
+      return res.status(FORBIDDEN).send("unauthorized user role");
+    }
 
-  const split = authorization.split("Bearer ");
+    if (opts.hasRole in UserRoles) {
+      return next();
+    }
 
-  if (split.length !== 2) {
-    res
-      .status(FORBIDDEN)
-      .send("Authentication failed: invalid authorization format.");
-  }
-
-  const status = await jwtService.authenticate(req);
-
-  if (status == JwtService.TOKEN_EXPIRED_ERROR) {
-    return res.status(UNAUTHORIZED).send("TokenExpired");
-  } else if (status == JwtService.TOKEN_MISSING_ERROR) {
-    return res.status(FORBIDDEN).send("MissingToken");
-  } else if (status == JwtService.TOKEN_VALIDATION_ERROR) {
-    return res.status(FORBIDDEN).send("InvalidToken");
-  }
-
-  return next();
+    return res.status(FORBIDDEN).send("unauthorized user");
+  };
 };

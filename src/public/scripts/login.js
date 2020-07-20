@@ -8,8 +8,9 @@ document.addEventListener('click', function (event) {
             email: emailInput.value,
             password: pwdInput.value
         };
-        Http.Post('/api/auth/login', data)
-            .then(() => {
+        Http.Post('/api/v1/auth/login', data)
+            .then((data) => {
+                console.log(data)
                 window.location.href = '/users';
             })
     }

@@ -1,10 +1,10 @@
-import { Router } from "express";
+import * as express from "express";
 
-import { isAuthorized } from "../middlewares/authorize";
 import { isAuthenticated } from "../middlewares/authenticate";
+import { isAuthorized } from "../middlewares/authorize";
 import { find, create, update, remove } from "../controllers/Users";
 
-const router = Router();
+const router = express.Router();
 
 /******************************************************************************
  *                      Get All Users - "GET /api/users/all"

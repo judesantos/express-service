@@ -1,9 +1,9 @@
-import { Router } from "express";
+import * as express from "express";
 import { login, logout } from "../controllers/Auth";
 import { isAuthorized } from "../middlewares/authorize";
-import { isAuthenticated } from "../middlewares/authenticate";
+import { UserRoles } from "@models/User";
 
-const router = Router();
+const router = express.Router();
 
 /******************************************************************************
  *                      Login User - "POST /api/auth/login"
@@ -15,7 +15,8 @@ router.post("/login", [isAuthorized, login]);
  *                      Logout - "GET /api/auth/logout"
  ******************************************************************************/
 
-router.get("/logout", [isAuthorized, isAuthenticated, logout]);
+//router.get("/logout", [isAuthorized, isAuthenticated, logout]);
+router.get("/logout", [logout]);
 
 /******************************************************************************
  *                                 Export Router

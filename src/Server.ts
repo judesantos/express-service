@@ -16,13 +16,14 @@ import { cookieProps } from "@shared/constants";
 import DbContext from "./dbs/DbContext";
 import env from "../env";
 
+const debug = require("debug")("taskpal-service:app");
 // Init express
 const app = express();
 
 /************************************************************************************
  *                              Set basic express settings
  ***********************************************************************************/
-
+/*
 app.use(express.json());
 app.use(cors());
 // parse application/x-www-form-urlencoded
@@ -40,12 +41,29 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(cookieProps.secret));
-
+*/
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+// parse application/json
+app.use(bodyParser.json());
+// session config
+app.use(
+  session({
+    secret: env.salt,
+    cookie: { maxAge: 60000, secure: false },
+    saveUninitialized: true,
+    resave: true,
+  })
+);
+app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, "public")));
 // Show routes called in console during development
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
-
 // Security
 if (process.env.NODE_ENV === "production") {
   app.use(helmet());
@@ -83,10 +101,12 @@ DbContext.getInstance()
 
     // default routes
     app.get("/", (req: Request, res: Response) => {
+      logger.info("Enter base route '/'");
       res.sendFile("login.html", { root: viewsDir });
     });
 
     app.get("/users", (req: Request, res: Response) => {
+      logger.info("Enter route '/users'");
       const jwt = req.signedCookies[cookieProps.key];
       if (!jwt) {
         res.redirect("/");
