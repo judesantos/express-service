@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import { UNAUTHORIZED, FORBIDDEN } from "http-status-codes";
 
-import JwtService from "@shared/JwtService";
+import JwtService, { JwtTokenData } from "@shared/JwtService";
 import logger from "@shared/Logger";
 const jwtService = new JwtService();
 
-export const isAuthorized = async (
+export const isAuthenticated = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  logger.debug("Entering middleware::isAuthorized()");
+  logger.debug("Entering middleware::isAuthenticated()");
   const { authorization } = req.headers;
   if (!authorization) {
     return res
@@ -43,4 +43,13 @@ export const isAuthorized = async (
   }
 
   return next();
+};
+
+export const isApiUserAuthenticated = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  logger.debug("Enter middleware::isAuthenticated()");
+  isAuthenticated(req, res, next);
 };

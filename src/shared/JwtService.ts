@@ -3,6 +3,7 @@ import { Request } from "express";
 import fs from "fs";
 import env from "../../env";
 import JWT from "jsonwebtoken";
+import logger from "@shared/Logger";
 
 const path = require("path");
 
@@ -21,6 +22,7 @@ class JwtService {
   public static TOKEN_VALIATION_SUCCESS = 0;
 
   constructor() {
+    logger.debug("Enter JwtService::constructor()");
     //this.secret = process.env.JWT_SECRET || randomString.generate(100);
     // signature data - generate hash that must be identical to the token signature.
     this.options = {
@@ -44,14 +46,18 @@ class JwtService {
     }
   };
 
-  public authenticate = async (req: Request): Promise<number> => {
-    let token = this.getToken(req.headers);
+  public authenticate = async (req: Request): Promise<JwtTokenData> => {
+    logger.debug("Enter JwtService::authenticate()");
+
     let status = JwtService.TOKEN_VALIATION_SUCCESS;
+    let _decoded = null;
+
+    let token = this.getToken(req.headers);
     if (!token) {
       status = JwtService.TOKEN_MISSING_ERROR;
     } else {
       // verify jwt access token
-      await JWT.verify(token, this.secret, this.options, (err) => {
+      await JWT.verify(token, this.secret, this.options, (err, decoded) => {
         if (err) {
           if (err.name === "TokenExpiredError") {
             status = JwtService.TOKEN_EXPIRED_ERROR;
@@ -59,12 +65,26 @@ class JwtService {
             status = JwtService.TOKEN_VALIDATION_ERROR;
           }
         } else {
+          _decoded = decoded;
+          logger.debug(JSON.stringify({ decodedTokenData: decoded }));
           status = JwtService.TOKEN_VALIATION_SUCCESS;
         }
       });
     }
-    return status;
+    return {
+      status: status,
+      clientId: _decoded.client,
+    } as JwtTokenData;
   };
+}
+
+export interface JwtTokenData {
+  status: number;
+  clientId: string;
+  iss: string;
+  userId: string;
+  exp: string;
+  email: string;
 }
 
 export default JwtService;

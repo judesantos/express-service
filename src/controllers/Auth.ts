@@ -1,18 +1,14 @@
-import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { BAD_REQUEST, OK, UNAUTHORIZED, NOT_FOUND } from "http-status-codes";
 import {
   paramMissingError,
   loginFailedErr,
+  loginPasswordError,
   cookieProps,
 } from "@shared/constants";
 
 import { UserRoles, UserModel } from "@models/User";
 import logger from "@shared/Logger";
-
-/******************************************************************************
- *                      Login User - "POST /api/auth/login"
- ******************************************************************************/
 
 export const login = async (req: Request, res: Response) => {
   logger.debug("Enter Auth::login()");
@@ -27,7 +23,7 @@ export const login = async (req: Request, res: Response) => {
   // Fetch user
   const user = await UserModel.findOne({ email: email });
   logger.debug(user);
-  if (!user || !user.active || !(user.role in UserRoles)) {
+  if (!user || !user.active || false === UserRoles.includes(user.role)) {
     return res.status(UNAUTHORIZED).json({
       error: loginFailedErr,
     });
@@ -42,17 +38,15 @@ export const login = async (req: Request, res: Response) => {
     return res.status(OK).json("Login success!");
   } else {
     return res.status(UNAUTHORIZED).json({
-      error: loginFailedErr,
+      error: loginPasswordError,
     });
   }
 };
 
-/******************************************************************************
- *                      Logout - "GET /api/auth/logout"
- ******************************************************************************/
-
 export const logout = async (req: Request, res: Response) => {
   const { key, options } = cookieProps;
-  res.clearCookie(key, options);
+  req!.session!.destroy(() => {
+    res.clearCookie(key, options);
+  });
   return res.status(OK).end();
 };

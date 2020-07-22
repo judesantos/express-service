@@ -5,13 +5,31 @@ import DbContext from "../dbs/DbContext";
 import logger from "@shared/Logger";
 import env from "../../env";
 
-export enum UserRoles {
-  User,
-  Technician,
-  Supervisor,
-  Manager,
-  Admin,
+//export const UserRoles = {
+//  SuperAdmin: "SuperAdmin",
+//  Admin: "Admin",
+//  Manager: "Manager",
+//  Supervisor: "Supervisor",
+//  Technician: "Techniciaan",
+//  User: "User",
+//};
+export interface UserInfo {
+  fullName: string;
+  email: string;
+  role: string;
+  active: boolean;
+  clientId: string;
 }
+
+export const UserRoles = [
+  "SuperAdmin",
+  "Admin",
+  "Manager",
+  "Supervisor",
+  "Manager",
+  "Technician",
+  "User",
+];
 
 const UserSchema = new Schema(
   {
@@ -22,6 +40,7 @@ const UserSchema = new Schema(
     verificationCode: { type: String },
     verifiedAt: { type: Date },
     active: { type: Boolean },
+    clientId: { type: String },
   },
   {
     timestamps: true,
