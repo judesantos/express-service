@@ -1,6 +1,11 @@
 <div class="row">
   <div class="col col-md-5 offset-md-3 col-lg-4 offset-lg-4">
     <h3>Register</h3>
+    {{#if error}}
+    <p class="alert alert-danger" style="font-size:0.8rem;padding:10px !important;">
+      {{ loud error }}
+    </p>
+    {{/if}}
     <form action="/register" method="POST">
       <div class="card mb-3">
         <div class="card-header">
@@ -13,7 +18,8 @@
               <span class="text-danger">*</span>
             </label>
             <input name="fullName" id="fullName" type="text"
-              class="form-control {{#if fullName.error }} error-element {{/if}}" value="{{ fullName.value }}">
+              class="form-control {{#if fullName.error }} error-element {{/if}}" 
+                value="{{ fullName.value }}">
             {{#if fullName.error }}
             <p class="error-msg">{{{ fullName.msg }}}</p>
             {{/if}}
@@ -23,7 +29,8 @@
               Email
               <span class="text-danger">*</span>
             </label>
-            <input name="email" id="email" type="text" class="form-control {{#if email.error }} error-element {{/if}}"
+            <input name="email" id="email" type="text" 
+              class="form-control {{#if email.error }} error-element {{/if}}"
               value="{{ email.value }}">
             {{#if email.error }}
             <p class="error-msg">{{{ email.msg }}}</p>
@@ -35,7 +42,8 @@
               <span class="text-danger">*</span>
             </label>
             <input name="password" id="password" type="password"
-              class="form-control {{#if password.error }} error-element {{/if}}" value="{{ passwoed.value }}">
+              class="form-control {{#if password.error }} error-element {{/if}}" 
+                value="{{ passwoed.value }}">
             {{#if password.error }}
             <p class="error-msg">{{{ password.msg }}}</p>
             {{/if}}
@@ -45,8 +53,9 @@
               User Role
               <span class="text-danger">*</span>
             </label>
-            <select name="role" id="role" class="form-control {{#if role.error }} error-element {{/if}}"
-              value="{{ role.value }}">
+            <select name="role" id="role" 
+              class="form-control {{#if role.error }} error-element {{/if}}" 
+                value="{{ role.value }}">
               <option value="">Select Role</option>
               <option value="Technician">Technician</option>
               <option value="Supervisor">Supervisor</option>
@@ -63,7 +72,7 @@
       {{#ifstreq loggedInUser.role "SuperAdmin"}}
       <div class="card mb-3">
         <div class="card-header">
-          OAuth Client
+          OAuth Clients
         </div>
         <div class="card-body">
           <div class="form-group">
@@ -72,9 +81,10 @@
               <span class="text-danger">*</span>
             </label>
             <input name="clientId" id="clientId" type="text"
-              class="form-control {{#if clientId.error }} error-element {{/if}}" value="{{ clientId.value }}">
-            {{#if clientId.error }}
-            <p class="error-msg">{{{ clientId.msg }}}</p>
+              class="form-control {{#if ../clientId.error }} error-element {{/if}}" 
+                value="{{ ../clientId.value }}">
+            {{#if ../clientId.error }}
+            <p class="error-msg">{{{ ../clientId.msg }}}</p>
             {{/if}}
           </div>
         </div>

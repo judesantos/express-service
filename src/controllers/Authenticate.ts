@@ -1,55 +1,128 @@
 import { Request, Response, NextFunction } from "express";
-import { UNAUTHORIZED, FORBIDDEN } from "http-status-codes";
+import { OK, UNAUTHORIZED, FORBIDDEN } from "http-status-codes";
 
-import JwtService, { JwtTokenData } from "@shared/JwtService";
+import {
+  authenticationError,
+  invalidAuthError,
+  invalidAuthFormatError,
+  tokenInvalidError,
+  tokenMisingError,
+  tokenExpiredError,
+  loginRequiredError,
+} from "@shared/constants";
+
+import JwtService from "@shared/JwtService";
 import logger from "@shared/Logger";
+import { ResponseData } from "@shared/Types";
+
 const jwtService = new JwtService();
 
-export const isAuthenticated = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const isAuthenticated = async (req: Request) => {
   logger.debug("Entering middleware::isAuthenticated()");
+
   const { authorization } = req.headers;
+
+  const user = req!.session!.user ?? null;
+  const token = user ? user.token ?? null : null;
+
   if (!authorization) {
-    return res
-      .status(FORBIDDEN)
-      .send("Authentication failed: missing authorization in request");
+    return {
+      status: FORBIDDEN,
+      message: authenticationError,
+    } as ResponseData;
+  }
+
+  if (user) {
+    // if in session (logged-in),
+    // check if inbound token is same as one stored in this session.
+    if (!token) {
+      return {
+        status: UNAUTHORIZED,
+        message: loginRequiredError,
+      } as ResponseData;
+    }
+
+    logger.debug("auth: " + authorization + ", token: " + token);
+
+    if (authorization !== user.token) {
+      // destroy session
+      req!.session!.destroy(() => {});
+      return {
+        status: FORBIDDEN,
+        message: invalidAuthError,
+      } as ResponseData;
+    }
   }
 
   if (!authorization.startsWith("Bearer")) {
-    return res
-      .status(FORBIDDEN)
-      .send("Authentication failed: invalid authorization");
+    return {
+      status: FORBIDDEN,
+      message: invalidAuthError,
+    } as ResponseData;
   }
 
   const split = authorization.split("Bearer ");
 
   if (split.length !== 2) {
-    res
-      .status(FORBIDDEN)
-      .send("Authentication failed: invalid authorization format.");
+    return {
+      status: FORBIDDEN,
+      message: invalidAuthFormatError,
+    } as ResponseData;
   }
 
-  const status = await jwtService.authenticate(req);
+  const jwtRet: any = await jwtService.authenticate(authorization);
 
-  if (status == JwtService.TOKEN_EXPIRED_ERROR) {
-    return res.status(UNAUTHORIZED).send("TokenExpired");
-  } else if (status == JwtService.TOKEN_MISSING_ERROR) {
-    return res.status(FORBIDDEN).send("MissingToken");
-  } else if (status == JwtService.TOKEN_VALIDATION_ERROR) {
-    return res.status(FORBIDDEN).send("InvalidToken");
+  if (jwtRet.status == JwtService.TOKEN_EXPIRED_ERROR) {
+    return {
+      status: UNAUTHORIZED,
+      message: tokenExpiredError,
+    } as ResponseData;
+  } else if (jwtRet.status == JwtService.TOKEN_MISSING_ERROR) {
+    return {
+      status: FORBIDDEN,
+      message: tokenMisingError,
+    } as ResponseData;
+  } else if (jwtRet.status == JwtService.TOKEN_VALIDATION_ERROR) {
+    return {
+      status: FORBIDDEN,
+      message: tokenInvalidError,
+    } as ResponseData;
   }
 
-  return next();
+  return {
+    status: OK,
+  } as ResponseData;
 };
 
-export const isApiUserAuthenticated = async (
+export const adminIsAuthenticated = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  logger.debug("Enter middleware::isAuthenticated()");
-  isAuthenticated(req, res, next);
+  logger.debug("Entering middleware::adminIsAuthenticated()");
+
+  const ret: any = isAuthenticated(req);
+
+  if (OK !== ret.status) {
+    return res.status(ret.status).send(ret.message);
+  }
+
+  next();
+};
+
+export const apiIsAuthenticated = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  logger.debug("Enter middleware::apiIsAuthenticated()");
+
+  const ret: any = await isAuthenticated(req);
+
+  if (OK !== ret.status) {
+    return res.status(ret.status).json(ret.message);
+  }
+
+  logger.debug("Exit middleware::apiIsAuthenticated()");
+  next();
 };

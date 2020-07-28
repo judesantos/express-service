@@ -1,9 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { body, validationResult } from "express-validator";
+import { body, validationResult, ValidationError } from "express-validator";
+import { OK } from "http-status-codes";
 
 import { UserInfo, UserModel, UserRoles } from "@models/User";
+import { find, findOne } from "./Users";
+import { doLogin } from "./Auth";
 import logger from "@shared/Logger";
-import { cookieProps } from "@shared/constants";
+
 const crypto = require("crypto");
 
 /************************************************************************************
@@ -37,37 +40,25 @@ export const doSignIn = async (
   next: NextFunction
 ) => {
   logger.debug("Enter controller::doSignIn()");
-  let error: string = "";
-  if (
-    !req.body.username ||
-    !req.body.username.length ||
-    !req.body.password ||
-    !req.body.password.length
-  ) {
-    error = "Invalid username or password";
-  } else {
-    let user = await UserModel.findOne({ email: req.body.username });
-    if (!user || !user.active) {
-      error = "User not found";
-    } else if (false === UserRoles.includes(user.role)) {
-      error = "Unauthorized user!";
-    } else {
-      if (user.validatePassword(req.body.password)) {
-        req!.session!.user = {
-          _id: user._id,
-          fullName: user.fullName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          clientId: user.clientId,
-        };
-        res.redirect("/");
-      }
-    }
-  }
 
-  if (error.length) {
-    res.render("sign-in", { error: error });
+  const { email, password } = req.body;
+
+  const ret = await doLogin(email, password);
+
+  if (OK == ret.status) {
+    const user = ret.data;
+    req!.session!.user = {
+      _id: user._id,
+      fullName: user.fullName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      clientId: user.clientId,
+    };
+    res.locals.view = "sign-in";
+    return next();
+  } else {
+    res.render("sign-in", { error: ret.message });
   }
 };
 
@@ -83,8 +74,8 @@ export const doSignOut = (req: Request, res: Response) => {
     } else {
       logger.warn("Logout failed.");
     }
-    const { key, options } = cookieProps;
-    res.clearCookie(key, options);
+    //const { secret, options } = cookieProps;
+    //res.clearCookie(secret, options);
   });
   res.redirect("/");
 };
@@ -104,41 +95,52 @@ export const renderRegistration = (req: Request, res: Response) => {
 export const doRegister = async (req: Request, res: Response) => {
   logger.debug("Enter controller::doRegister()");
 
+  let { role, clientId } = req.body;
+  logger.debug("body: " + JSON.stringify(req.body));
+
   // check validation result, if error send back error message
 
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    req!.session!.form = getRegistrationFormErrors(req.body, errors.array());
-    const message = "Validation failed! Check form fields for errors.";
-    req.flash("error", message);
-    logger.warn(message);
-    return res.redirect("/register");
-  }
+  let arrErrors = errors.array();
 
   // check if clientId is required when requester is SuperAdmin
+  if ("SuperAdmin" === req!.session!.user.role && !clientId.length) {
+    arrErrors.push({
+      param: "clientId",
+      value: "",
+      msg: "clientId is required",
+      location: "body",
+    } as ValidationError);
+  }
 
-  let { role, clientId } = req.body;
+  if (arrErrors.length) {
+    req!.session!.form = getRegistrationFormErrors(req.body, arrErrors);
 
-  if ("SuperAdmin" === req!.session!.user.role && !clientId) {
-    req.flash("error", "clientId is required");
+    const message = "Validation failed!";
+    req.flash("error", message);
+    logger.warn(message);
+
     return res.redirect("/register");
-  } else {
-    // get clientId associated with this merchant
-    clientId = req!.session!.user.clientId;
   }
 
   // Create User
 
+  let user = null;
+  // use clientid of 'Admin' who creates this user
+  // clientid associates both users to same merchant system.
   let _user = new UserModel({
     fullName: req.body.fullName,
     email: req.body.email,
     role: role,
     active: true,
-    clientId: clientId,
+    clientId: req.body.clientId
+      ? req.body.clientId
+      : req!.session!.user.clientId,
     verificationCode: crypto.randomBytes(16).toString("hex"),
   });
+
   _user.setPassword(req.body.password);
-  let user = null;
+
   try {
     user = await _user.save();
   } catch (err) {
@@ -153,6 +155,15 @@ export const doRegister = async (req: Request, res: Response) => {
   return res.render("register", { signup: { success: true } });
 };
 
+export const renderUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const users = await find(req, res);
+  res.render("users", { users });
+};
+
 /************************************************************************************
  *                              Helper methods/utils
  ***********************************************************************************/
@@ -163,6 +174,7 @@ interface IUserRegistrationForm {
   password: any;
   role: any;
   clientId: any;
+  error: any;
 }
 
 interface IUserRegistrationPage extends IUserRegistrationForm {
@@ -215,7 +227,7 @@ const renderRegistrationFormErrors = (req: Request) => {
     params.email = form.email;
     params.password = form.password;
     params.role = form.role;
-    params.clientId = form.clientid;
+    params.clientId = form.clientId;
     params.error = req.flash("error");
   } else {
     params.message = req.flash("message");

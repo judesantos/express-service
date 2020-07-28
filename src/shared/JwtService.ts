@@ -4,6 +4,7 @@ import fs from "fs";
 import env from "../../env";
 import JWT from "jsonwebtoken";
 import logger from "@shared/Logger";
+import { ResponseData } from "./Types";
 
 const path = require("path");
 
@@ -19,40 +20,42 @@ class JwtService {
   public static TOKEN_EXPIRED_ERROR = -1;
   public static TOKEN_MISSING_ERROR = -2;
   public static TOKEN_VALIDATION_ERROR = -3;
-  public static TOKEN_VALIATION_SUCCESS = 0;
+  public static TOKEN_VALIDATION_SUCCESS = 0;
 
   constructor() {
     logger.debug("Enter JwtService::constructor()");
-    //this.secret = process.env.JWT_SECRET || randomString.generate(100);
     // signature data - generate hash that must be identical to the token signature.
     this.options = {
       issuer: env.jwt.issuer,
       expiresIn: env.jwt.access_token_expires,
       algorithm: env.jwt.algorithm,
     };
-    //this.options = { expiresIn: cookieProps.options.maxAge.toString() };
     this.secret = fs.readFileSync(
-      path.resolve(__dirname, "../.keys/public.key"),
+      path.resolve(__dirname, "../../.keys/public.key"),
       "utf8"
     );
   }
 
-  private getToken = (hdrs: any) => {
-    if (hdrs && hdrs.authorization) {
-      let tok = hdrs.authorization.split(" ");
+  private getToken = (auth: string) => {
+    if (auth) {
+      let tok = auth.split(" ");
       if (tok.length === 2) {
         return tok[1];
       }
     }
   };
 
-  public authenticate = async (req: Request): Promise<JwtTokenData> => {
+  public authenticate = async (
+    auth: string
+  ): Promise<ResponseData | number> => {
     logger.debug("Enter JwtService::authenticate()");
 
-    let status = JwtService.TOKEN_VALIATION_SUCCESS;
-    let _decoded = null;
+    let error = "";
+    let status = JwtService.TOKEN_VALIDATION_SUCCESS;
+    let _decoded: any = null;
 
-    let token = this.getToken(req.headers);
+    let token = this.getToken(auth);
+
     if (!token) {
       status = JwtService.TOKEN_MISSING_ERROR;
     } else {
@@ -63,18 +66,21 @@ class JwtService {
             status = JwtService.TOKEN_EXPIRED_ERROR;
           } else {
             status = JwtService.TOKEN_VALIDATION_ERROR;
+            error = err.message;
           }
         } else {
           _decoded = decoded;
           logger.debug(JSON.stringify({ decodedTokenData: decoded }));
-          status = JwtService.TOKEN_VALIATION_SUCCESS;
+          status = JwtService.TOKEN_VALIDATION_SUCCESS;
         }
       });
     }
+
     return {
       status: status,
-      clientId: _decoded.client,
-    } as JwtTokenData;
+      message: error,
+      data: _decoded as JwtTokenData,
+    } as ResponseData;
   };
 }
 

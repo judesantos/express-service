@@ -1,8 +1,23 @@
 // Strings
-export const paramMissingError =
-  "One or more of the required parameters was missing.";
+export const paramMissingError = "Missing required arguments.";
+export const invalidArgumentError = "Invalid argument";
+export const loginMissingUserPassErr = "Missing username or password";
 export const loginFailedErr = "Login failed";
 export const loginPasswordError = "Password validation failed";
+export const loginInvalidUsernamePass = "Invalid username or password";
+
+export const unauthorizedError = "User unauthorized to access this resource";
+export const authorizationError = "Can not verify user authorization";
+export const loginRequiredError = "Login required to access resource";
+export const authenticationError = "Missing authorization in request";
+export const invalidAuthError = "Invalid authorization";
+export const invalidAuthFormatError = "Invalid authorization format.";
+
+export const tokenExpiredError = "TokenExpired";
+export const tokenMisingError = "TokenMissing";
+export const tokenInvalidError = "TokenInvalid";
+
+export const serverError = "Server error";
 
 // Numbers
 export const pwdSaltRounds = 12;

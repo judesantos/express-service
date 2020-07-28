@@ -22,7 +22,8 @@
     "@dbs": "dist/dbs",
     "@models": "dist/models",
     "@shared": "dist/shared",
-    "@server": "dist/Server"
+    "@server": "dist/Server",
+    "@controllers": "dist/controllers"
   },
   "dependencies": {
     "@types/connect-flash": "0.0.35",

@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { UNAUTHORIZED, FORBIDDEN } from "http-status-codes";
+import { FORBIDDEN, OK } from "http-status-codes";
 
-import { UserRoles } from "@models/User";
+import {
+  unauthorizedError,
+  loginRequiredError,
+  authorizationError,
+} from "@shared/constants";
+
 import logger from "@shared/Logger";
 
 /**
@@ -23,11 +28,34 @@ export const isAuthorized = (opts: {
 
     if (!_id || !role) return redirectLogin();
 
+    let isAuthorized = false;
     if (opts.hasRole.includes(role)) {
-      return next();
+      isAuthorized = true;
     }
 
-    return res.status(FORBIDDEN).send("Unauthorized user!");
+    let error = { error: "Unauthorized user" } as any;
+    let view = res.locals.view ? res.locals.view : "error";
+
+    if ("sign-in" === view) {
+      if (isAuthorized) {
+        return res.redirect("/");
+      } else {
+        req!.session!.destroy(() => {});
+      }
+    }
+
+    if (isAuthorized) {
+      return next();
+    } else if ("error" === view) {
+      error = {
+        error: {
+          status: "Unauthorized user",
+        },
+        message: "Requires admin access",
+      };
+    }
+
+    return res.render(view, error);
   };
 };
 
@@ -35,26 +63,44 @@ export const isAuthorized = (opts: {
  *
  * @param opts
  */
-export const isApiUserAuthorized = (opts: {
+export const apiIsAuthorized = (opts: {
   hasRole: Array<
     "SuperAdmin" | "Admin" | "Manager" | "Supervisor" | "Technician" | "User"
   >;
 }) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    logger.debug("Entering middleware::isApiUserAuthorized()");
-    const redirectLogin = () =>
-      res.status(FORBIDDEN).send("Unauthorized access to resource");
+    logger.debug("Enter middleware::apiIsAuthorized()");
+    const redirectLogin = (msg: string) =>
+      res.status(FORBIDDEN).json(msg ? msg : "Unauthorized access to resource");
 
-    if (!req!.session!.user) return redirectLogin();
+    if (!req!.session!.user) return redirectLogin(loginRequiredError);
 
     const { role, _id } = req!.session!.user;
 
-    if (!_id || !role) return redirectLogin();
+    if (!role) return redirectLogin(unauthorizedError);
+
+    let isAuthorized = false;
 
     if (opts.hasRole.includes(role)) {
-      return next();
+      isAuthorized = true;
     }
 
-    return res.status(FORBIDDEN).send("Unauthorized user!");
+    if (isAuthorized) {
+      if (res.locals.authorized) {
+        if (true === res.locals.authorized) {
+          delete res.locals.authorized;
+          res.status(OK).json("Login Success");
+        } else {
+          logger.debug("apiIsAuthorized() - terminate this session!");
+          req!.session!.destroy(() => {});
+        }
+      } else {
+        logger.debug("Exit middleware::apiIsAuthorized()");
+        return next();
+      }
+    }
+
+    logger.debug("Exit middleware::apiIsAuthorized() - authorization error");
+    return redirectLogin(authorizationError);
   };
 };

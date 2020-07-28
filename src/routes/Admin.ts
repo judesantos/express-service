@@ -1,6 +1,5 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 
-import { isAuthorized } from "../controllers/Authorize";
 import {
   renderSignIn,
   doSignIn,
@@ -8,7 +7,11 @@ import {
   renderRegistration,
   registrationFormValidation,
   doRegister,
+  renderUsers,
 } from "../controllers/Admin";
+
+import { isAuthorized } from "../controllers/Authorize";
+import logger from "@shared/Logger";
 
 const router = Router();
 
@@ -18,6 +21,20 @@ const router = Router();
  *  - jwt-oauth2 using public/private keys
  *
  ***********************************************************************************/
+
+// set Admin root
+router.get("/", (req: Request, res: Response, next: NextFunction) => {
+  logger.debug("ENTER admin root - '/'");
+  logger.debug(JSON.stringify(req.session));
+  if (!req.session || !req.session.user) {
+    return res.redirect("/sign-in");
+  }
+  res.render("index", {
+    location: "home",
+    title: "TaskPal service.",
+    loggedInUser: req.session.user,
+  });
+});
 
 /**
  * Get sign-in page
@@ -35,18 +52,41 @@ router.get("/sign-in", [renderSignIn]);
  *  - sign-in and store session user info.
  *  - check if user role is authorized to procceed. Otherwise, logout.
  */
-router.post("/sign-in", [doSignIn]);
+router.post("/sign-in", [
+  doSignIn,
+  isAuthorized({ hasRole: ["SuperAdmin", "Admin"] }),
+]);
 
+/**
+ * logout
+ *
+ */
 router.get("/sign-out", [doSignOut]);
 
+/**
+ * sign-up user to organization role, assigns clientId as merchant-id.
+ *
+ */
 router.get("/register", [
   isAuthorized({ hasRole: ["SuperAdmin", "Admin"] }),
   renderRegistration,
 ]);
 
-router.post("/register", registrationFormValidation, [
+/**
+ * commit user sign-up
+ *
+ */
+router.post(
+  "/register",
   isAuthorized({ hasRole: ["SuperAdmin", "Admin"] }),
-  doRegister,
-]);
+  registrationFormValidation,
+  doRegister
+);
 
-module.exports = router;
+router.get(
+  "/users",
+  isAuthorized({ hasRole: ["SuperAdmin", "Admin"] }),
+  renderUsers
+);
+
+export default router;

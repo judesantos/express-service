@@ -16,7 +16,8 @@
       "@dbs/*": ["src/dbs/*"],
       "@models/*": ["src/models/*"],
       "@shared/*": ["src/shared/*"],
-      "@server": ["src/Server"]
+      "@server": ["src/Server"],
+      "@controllers/*": ["src/controllers/*"]
     },
     "types": ["node"],
     "typeRoots": ["node_modules/@types"]

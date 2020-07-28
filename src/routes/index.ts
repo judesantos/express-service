@@ -1,13 +1,24 @@
-import * as express from "express";
+import { Router, Request, Response, NextFunction } from "express";
 
-import UserRouter from "./Users";
 import AuthRouter from "./Auth";
+import AdminRouter from "./Admin";
+import UsersRouter from "./Users";
+import logger from "@shared/Logger";
+import env from "../../env";
 
-// Init router and path
-const router = express.Router();
-// Add sub-routes
-router.use("/users", UserRouter);
-router.use("/auth", AuthRouter);
+// Init routes
+const router = Router();
+const service = Router();
 
-// Export the base-router
+// API routes
+
+service.use("/auth", AuthRouter);
+service.use("/users", UsersRouter);
+
+router.use("/api/v1", service);
+
+// admin UI
+
+router.use("/", AdminRouter);
+
 module.exports = router;

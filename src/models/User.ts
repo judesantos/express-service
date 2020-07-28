@@ -5,14 +5,6 @@ import DbContext from "../dbs/DbContext";
 import logger from "@shared/Logger";
 import env from "../../env";
 
-//export const UserRoles = {
-//  SuperAdmin: "SuperAdmin",
-//  Admin: "Admin",
-//  Manager: "Manager",
-//  Supervisor: "Supervisor",
-//  Technician: "Techniciaan",
-//  User: "User",
-//};
 export interface UserInfo {
   fullName: string;
   email: string;

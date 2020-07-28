@@ -5,6 +5,8 @@
  */
 
 import { createLogger, format, transports } from "winston";
+import env from "../../env"
+
 const moment = require("moment");
 
 // Import Functions
@@ -22,7 +24,7 @@ const levels = {
 
 // Init Logger
 const logger = createLogger({
-  level: "silly",
+  level: env.logLevel,
 });
 
 const _tsFormat = () => moment().format("YYYY-MM-DD hh:mm:ss").trim();
