@@ -31,8 +31,8 @@ app.use(
   session({
     secret: env.salt,
     cookie: {
-      maxAge: env.session.expires,
-      secure: env.session.secure,
+      maxAge: env.session.expires as number,
+      secure: env.session.secure === "true" ? true : false,
     },
     saveUninitialized: false,
     resave: false,

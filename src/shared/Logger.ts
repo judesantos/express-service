@@ -5,7 +5,7 @@
  */
 
 import { createLogger, format, transports } from "winston";
-import env from "../../env"
+import env from "../../env";
 
 const moment = require("moment");
 

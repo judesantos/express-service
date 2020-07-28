@@ -26,8 +26,6 @@
     "@controllers": "dist/controllers"
   },
   "dependencies": {
-    "@types/connect-flash": "0.0.35",
-    "@types/mongoose": "^5.7.32",
     "bcrypt": "^5.0.0",
     "command-line-args": "^5.1.1",
     "connect-flash": "^0.1.1",
@@ -51,6 +49,8 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@types/connect-flash": "0.0.35",
+    "@types/mongoose": "^5.7.32",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "@types/bcrypt": "^3.0.0",
