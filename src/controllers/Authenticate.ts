@@ -17,41 +17,16 @@ import { ResponseData } from "@shared/Types";
 
 const jwtService = new JwtService();
 
-const isAuthenticated = async (req: Request) => {
+const isAuthenticated = async (req: Request, res: Response) => {
   logger.debug("Entering middleware::isAuthenticated()");
 
   const { authorization } = req.headers;
-
-  const user = req!.session!.user ?? null;
-  const token = user ? user.token ?? null : null;
 
   if (!authorization) {
     return {
       status: FORBIDDEN,
       message: authenticationError,
     } as ResponseData;
-  }
-
-  if (user) {
-    // if in session (logged-in),
-    // check if inbound token is same as one stored in this session.
-    if (!token) {
-      return {
-        status: UNAUTHORIZED,
-        message: loginRequiredError,
-      } as ResponseData;
-    }
-
-    logger.debug("auth: " + authorization + ", token: " + token);
-
-    if (authorization !== user.token) {
-      // destroy session
-      req!.session!.destroy(() => {});
-      return {
-        status: FORBIDDEN,
-        message: invalidAuthError,
-      } as ResponseData;
-    }
   }
 
   if (!authorization.startsWith("Bearer")) {
@@ -91,6 +66,7 @@ const isAuthenticated = async (req: Request) => {
 
   return {
     status: OK,
+    data: jwtRet,
   } as ResponseData;
 };
 
@@ -101,7 +77,7 @@ export const adminIsAuthenticated = async (
 ) => {
   logger.debug("Entering middleware::adminIsAuthenticated()");
 
-  const ret: any = isAuthenticated(req);
+  const ret: any = isAuthenticated(req, res);
 
   if (OK !== ret.status) {
     return res.status(ret.status).send(ret.message);
@@ -117,11 +93,13 @@ export const apiIsAuthenticated = async (
 ) => {
   logger.debug("Enter middleware::apiIsAuthenticated()");
 
-  const ret: any = await isAuthenticated(req);
+  const ret: any = await isAuthenticated(req, res);
 
   if (OK !== ret.status) {
     return res.status(ret.status).json(ret.message);
   }
+
+  res.locals.user = ret.data;
 
   logger.debug("Exit middleware::apiIsAuthenticated()");
   next();

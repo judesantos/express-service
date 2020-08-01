@@ -22,9 +22,9 @@ export const isAuthorized = (opts: {
     logger.debug("Entering middleware::isAuthorized()");
     const redirectLogin = () => res.redirect("/");
 
-    if (!req!.session!.user) return redirectLogin();
+    if (!res.locals.user) return redirectLogin();
 
-    const { role, _id } = req!.session!.user;
+    const { role, _id } = res.locals.user;
 
     if (!_id || !role) return redirectLogin();
 
@@ -39,8 +39,6 @@ export const isAuthorized = (opts: {
     if ("sign-in" === view) {
       if (isAuthorized) {
         return res.redirect("/");
-      } else {
-        req!.session!.destroy(() => {});
       }
     }
 
@@ -73,31 +71,14 @@ export const apiIsAuthorized = (opts: {
     const redirectLogin = (msg: string) =>
       res.status(FORBIDDEN).json(msg ? msg : "Unauthorized access to resource");
 
-    if (!req!.session!.user) return redirectLogin(loginRequiredError);
+    if (!res.locals.user) return redirectLogin(loginRequiredError);
 
-    const { role, _id } = req!.session!.user;
+    const { role } = res.locals.user;
 
     if (!role) return redirectLogin(unauthorizedError);
 
-    let isAuthorized = false;
-
-    if (opts.hasRole.includes(role)) {
-      isAuthorized = true;
-    }
-
-    if (isAuthorized) {
-      if (res.locals.authorized) {
-        if (true === res.locals.authorized) {
-          delete res.locals.authorized;
-          res.status(OK).json("Login Success");
-        } else {
-          logger.debug("apiIsAuthorized() - terminate this session!");
-          req!.session!.destroy(() => {});
-        }
-      } else {
-        logger.debug("Exit middleware::apiIsAuthorized()");
-        return next();
-      }
+    if (undefined !== opts.hasRole.includes(role)) {
+      return next();
     }
 
     logger.debug("Exit middleware::apiIsAuthorized() - authorization error");

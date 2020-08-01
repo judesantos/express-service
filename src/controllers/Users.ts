@@ -16,7 +16,7 @@ export const findOne = async (req: Request, res: Response) => {
   const { id, email, fullName } = req.query;
   let params = [];
 
-  let clientId = req!.session!.user.clientId;
+  let clientId = res.locals.user.clientId;
   // restrict search to users of the same clientId.
   // If user is 'SuperAdmin', clientId may be wildcarded
   clientId = clientId === 0 ? "/.*" + clientId + ".*/" : clientId;
@@ -79,7 +79,7 @@ export const find = async (req: Request, res: Response) => {
   }
   // restrict search to users of the same clientId.
   // If user is 'SuperAdmin', clientId may be wildcarded
-  let clientId = req!.session!.user.clientId;
+  let clientId = res.locals.user.clientId;
   clientId = clientId === 0 ? new RegExp(clientId, "i") : clientId;
   if (clientId) params.push({ clientId: clientId });
   // paginate if available, if not set defaults
