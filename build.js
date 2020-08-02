@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const childProcess = require('child_process');
-const { default: logger } = require('@shared/Logger');
+const { default: logger } = require('@lib/Logger');
 
 
 try {

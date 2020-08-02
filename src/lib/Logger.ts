@@ -5,7 +5,7 @@
  */
 
 import { createLogger, format, transports } from "winston";
-import env from "../../env";
+import env from "../../.env";
 
 const moment = require("moment");
 
@@ -24,7 +24,7 @@ const levels = {
 
 // Init Logger
 const logger = createLogger({
-  level: env.logLevel,
+  level: env.logging.logLevel,
 });
 
 const _tsFormat = () => moment().format("YYYY-MM-DD hh:mm:ss").trim();
@@ -46,12 +46,12 @@ if (process.env.NODE_ENV === "production") {
     format.ms()
   );
   const errTransport = new File({
-    filename: "./logs/error.log",
+    filename: env.logging.errorLogPath,
     format: fileFormat,
     level: "error",
   });
   const infoTransport = new File({
-    filename: "./logs/combined.log",
+    filename: env.logging.commonLogPath,
     format: fileFormat,
   });
   logger.add(errTransport);

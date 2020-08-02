@@ -1,8 +1,8 @@
 const debug = require("debug")("taskpal-service:context");
-import logger from "@shared/Logger";
+import logger from "@lib/Logger";
 
 import DbConnector from "./DbConnector";
-import env from "../../env";
+import env from "../../.env";
 
 /**
  * DbContext singleton

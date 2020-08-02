@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import logger from "@shared/Logger";
+import logger from "@lib/Logger";
 
 class DbConnector {
   private cnx: any;

@@ -1,9 +1,7 @@
-import { Request } from "express";
-
 import fs from "fs";
-import env from "../../env";
+import env from "../../.env";
 import JWT from "jsonwebtoken";
-import logger from "@shared/Logger";
+import logger from "@lib/Logger";
 import { ResponseData } from "./Types";
 
 const path = require("path");

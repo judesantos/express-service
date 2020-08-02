@@ -2,8 +2,8 @@ import crypto from "crypto";
 import { Schema } from "mongoose";
 
 import DbContext from "../dbs/DbContext";
-import logger from "@shared/Logger";
-import env from "../../env";
+import logger from "@lib/Logger";
+import env from "../../.env";
 
 export interface UserInfo {
   fullName: string;

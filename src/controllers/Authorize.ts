@@ -5,9 +5,9 @@ import {
   unauthorizedError,
   loginRequiredError,
   authorizationError,
-} from "@shared/constants";
+} from "@lib/constants";
 
-import logger from "@shared/Logger";
+import logger from "@lib/Logger";
 
 /**
  *

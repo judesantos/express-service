@@ -6,8 +6,8 @@ import { SuperTest, Test } from "supertest";
 import app from "@server";
 import UserDao from "@dbs/User/UserDao.mock";
 import { User, UserRoles } from "@models/User";
-import { pwdSaltRounds, cookieProps, loginFailedErr } from "@shared/constants";
-import { pErr } from "@shared/functions";
+import { pwdSaltRounds, cookieProps, loginFailedErr } from "@lib/constants";
+import { pErr } from "@lib/functions";
 
 describe("UserRouter", () => {
   const authPath = "/api/auth";

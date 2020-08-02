@@ -2,9 +2,9 @@ import { Request, Response, Router } from "express";
 import { BAD_REQUEST, CREATED, OK, NOT_ACCEPTABLE } from "http-status-codes";
 import { ParamsDictionary } from "express-serve-static-core";
 
-import { paramMissingError, invalidArgumentError } from "@shared/constants";
+import { paramMissingError, invalidArgumentError } from "@lib/constants";
 import { UserModel } from "@models/User";
-import logger from "@shared/Logger";
+import logger from "@lib/Logger";
 
 // Init shared
 const router = Router();

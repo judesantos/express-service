@@ -1,21 +1,25 @@
-const debug = require("debug")("taskpal-service:app");
-
-import morgan from "morgan";
 import path from "path";
-import helmet from "helmet";
+import fs from "fs";
+
 import * as bodyParser from "body-parser";
+import morgan from "morgan";
+import helmet from "helmet";
 import cors from "cors";
 
 import express, { Request, Response, NextFunction } from "express";
 
-import logger from "@shared/Logger";
+import logger from "@lib/Logger";
 import DbContext from "./dbs/DbContext";
+
+import env from "../.env";
 
 // Init express
 const app = express();
 
 /************************************************************************************
- *                              Set basic express settings
+ *
+ *                              Setup app dependencies
+ *
  ***********************************************************************************/
 
 // parse application/x-www-form-urlencoded
@@ -26,17 +30,47 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
-// Show routes called in console during development
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
-// Security
-if (process.env.NODE_ENV === "production") {
+
+// use morgan for http tracing
+
+if (env.isProduction) {
+  // security
+
   app.use(helmet());
+
+  // log to file in production
+
+  app.use(
+    morgan("common", {
+      skip: function (req, res) {
+        return res.statusCode === 200;
+      },
+      stream: fs.createWriteStream(
+        path.join(__dirname, env.logging.commonLogPath),
+        { flags: "a" }
+      ),
+    })
+  );
+  app.use(
+    morgan("errors", {
+      skip: function (req, res) {
+        return res.statusCode > 200;
+      },
+      stream: fs.createWriteStream(
+        path.join(__dirname, env.logging.errorLogPath),
+        { flags: "a" }
+      ),
+    })
+  );
+} else {
+  // log to console in dev
+  app.use(morgan("dev"));
 }
 
 /************************************************************************************
- *                              Serve front-end content
+ *
+ *                              Setup db, routes
+ *
  ***********************************************************************************/
 
 // Get DB connection going before we initialize app server.

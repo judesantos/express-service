@@ -9,11 +9,11 @@ import {
   tokenMisingError,
   tokenExpiredError,
   loginRequiredError,
-} from "@shared/constants";
+} from "@lib/constants";
 
-import JwtService from "@shared/JwtService";
-import logger from "@shared/Logger";
-import { ResponseData } from "@shared/Types";
+import JwtService from "@lib/JwtService";
+import logger from "@lib/Logger";
+import { ResponseData } from "@lib/Types";
 
 const jwtService = new JwtService();
 

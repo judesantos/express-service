@@ -3,7 +3,7 @@ import { SuperTest, Test } from "supertest";
 
 import { User, UserRoles } from "@models/User";
 import UserDao from "@dbs/User/UserDao.mock";
-import { pwdSaltRounds } from "@shared/constants";
+import { pwdSaltRounds } from "@lib/constants";
 
 const creds = {
   email: "jsmith@gmail.com",

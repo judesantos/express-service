@@ -6,8 +6,8 @@ import app from "@server";
 import UserDao from "@dbs/User/UserDao.mock";
 import { IUser, User } from "@models/User";
 import { login } from "./support/LoginAgent";
-import { pErr } from "@shared/functions";
-import { paramMissingError } from "@shared/constants";
+import { pErr } from "@lib/functions";
+import { paramMissingError } from "@lib/constants";
 
 describe("UserRouter", () => {
   const usersPath = "/api/users";

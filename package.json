@@ -21,7 +21,7 @@
   "_moduleAliases": {
     "@dbs": "dist/dbs",
     "@models": "dist/models",
-    "@shared": "dist/shared",
+    "@lib": "dist/lib",
     "@server": "dist/Server",
     "@controllers": "dist/controllers"
   },

@@ -15,13 +15,13 @@
     "paths": {
       "@dbs/*": ["src/dbs/*"],
       "@models/*": ["src/models/*"],
-      "@shared/*": ["src/shared/*"],
+      "@lib/*": ["src/lib/*"],
       "@server": ["src/Server"],
       "@controllers/*": ["src/controllers/*"]
     },
     "types": ["node"],
     "typeRoots": ["node_modules/@types"]
   },
-  "include": ["src/**/*.ts", "spec/**/*.ts", "env.ts"],
+  "include": ["src/**/*.ts", "spec/**/*.ts", ".env.ts"],
   "exclude": ["src/public/"]
 }
